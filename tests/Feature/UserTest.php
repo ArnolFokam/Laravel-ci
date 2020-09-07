@@ -15,25 +15,27 @@ class UserTest extends TestCase
 
     private $password = "mypassword";
     
-    public function testUserCreation()
+    public function testUserLogin()
     {
-        
         $name = $this->faker->name();
         $email = $this->faker->email();
 
-        $response = $this->postJson('/api/auth/signup', [
-            'name' => $name, 
+        $user = new User([
+            'name' => $name,
             'email' => $email,
-            'password' => $this->password, 
-            'password_confirmation' => $this->password
-        ]); 
+            'password' => bcrypt($this->password)
+        ]);        
+        
+        $user->save();     
+        
+        $response = $this->postJson('/api/auth/login', [
+            'email' => $email,
+            'password' => $this->password
+        ]);
 
-
-        $response
-            ->assertStatus(201)
-            ->assertExactJson([
-                'message' => "Successfully created user!",
-            ]);
-    }//testUserCreation
+            
+        $response->assertStatus(200);
+        $this->assertAuthenticated();
+    }
     
 }
